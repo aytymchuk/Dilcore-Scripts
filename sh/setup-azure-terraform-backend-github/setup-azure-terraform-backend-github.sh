@@ -219,18 +219,17 @@ echo "Select the App Registration to use for 'AZURE_CLIENT_ID' and grant storage
 
 # We list apps, but showing display name and appId might be useful.
 # select_from_list is simple, so let's list DisplayNames and then resolve ID.
-# Or list "DisplayName (AppId)" strings.
+# Or list "DisplayName|AppId" strings.
 
 select_from_list APP_SELECTION "Select App Registration:" \
-    "az ad app list --filter \"startswith(displayName, 'GitHub')\" --query \"[].{Name:displayName, AppId:appId}\" -o tsv | awk '{print \$1 \" (\" \$2 \")\"}'"
+    "az ad app list --filter \"startswith(displayName, 'GitHub')\" --query \"[].{Name:displayName, AppId:appId}\" -o tsv | awk '{print \$1 \"|\" \$2}'"
 
 if [[ -z "$APP_SELECTION" ]]; then
     # Fallback to listing all or manual
     prompt APP_ID "Enter App Registration Client ID (Application ID)" ""
 else
-    # Extract App ID from "Name (AppID)" format
-    APP_ID=$(echo "$APP_SELECTION" | sed 's/.*(\(.*\))/\1/')
-    APP_NAME=$(echo "$APP_SELECTION" | sed 's/ (.*)//')
+    # Extract App ID from "Name|AppID" format safely
+    IFS='|' read -r APP_NAME APP_ID <<< "$APP_SELECTION"
 fi
 
 if [[ -z "$APP_ID" ]]; then
@@ -427,7 +426,11 @@ print_success "Secrets configured in '$ENVIRONMENT' environment."
 # Output Config File
 #-------------------------------------------------------------------------------
 
-OUTPUT_DIR="../../script-results/terraform-backend-config"
+# Resolve script directory to correctly locate the results folder regardless of execution path
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PROJECT_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
+OUTPUT_DIR="$PROJECT_ROOT/script-results/terraform-backend-config"
+
 mkdir -p "$OUTPUT_DIR"
 CONFIG_FILE="$OUTPUT_DIR/${ENVIRONMENT}-backend.tf"
 
