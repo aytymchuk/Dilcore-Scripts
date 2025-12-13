@@ -22,12 +22,14 @@ A script to bootstrap the Azure infrastructure (Storage Account) required for Te
 
 ## Quick Start
 
-1.  Navigate to the script's directory:
+1.  **Step 1: Connect Azure to GitHub**
+    This sets up the App Registration, Service Principal, OIDC Federation, and basic secrets.
     ```bash
-    cd sh/connect-azure-github
+    ./sh/connect-azure-github/connect-azure-github.sh
     ```
 
-2.  Run the script:
+2.  **Step 2: Setup Terraform Backend**
+    This creates the Storage Account and configures backend-specific secrets.
     ```bash
-    ./connect-azure-github.sh
+    ./sh/setup-azure-terraform-backend-github/setup-azure-terraform-backend-github.sh
     ```
