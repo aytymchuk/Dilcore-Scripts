@@ -722,7 +722,7 @@ fi
 # Output
 #-------------------------------------------------------------------------------
 
-OUTPUT_DIR="./github-azure-connections"
+OUTPUT_DIR="../../script-results/github-azure-connections"
 mkdir -p "$OUTPUT_DIR"
 
 cat > "$OUTPUT_DIR/${SUB_SUFFIX}.json" << EOF
