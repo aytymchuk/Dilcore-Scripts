@@ -560,16 +560,16 @@ else
 fi
 
 # Role Assignment
-print_step "Assigning Contributor role..."
-EXISTING_ROLE=$(az role assignment list --assignee "$APP_ID" --role "Contributor" \
+print_step "Assigning Owner role (required for Terraform full management)..."
+EXISTING_ROLE=$(az role assignment list --assignee "$APP_ID" --role "Owner" \
     --scope "/subscriptions/$SUBSCRIPTION_ID" --query "[0].id" -o tsv 2>/dev/null || echo "")
 
 if [[ -z "$EXISTING_ROLE" ]]; then
-    az role assignment create --assignee "$APP_ID" --role "Contributor" \
+    az role assignment create --assignee "$APP_ID" --role "Owner" \
         --scope "/subscriptions/$SUBSCRIPTION_ID" --output none
-    print_success "Role assigned"
+    print_success "Owner role assigned"
 else
-    print_warning "Role already assigned"
+    print_warning "Owner role already assigned"
 fi
 
 #-------------------------------------------------------------------------------

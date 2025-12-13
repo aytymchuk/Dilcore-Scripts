@@ -416,6 +416,8 @@ set_secret "TF_BACKEND_RESOURCE_GROUP" "$RESOURCE_GROUP"
 set_secret "TF_BACKEND_STORAGE_ACCOUNT" "$STORAGE_ACCOUNT"
 set_secret "TF_BACKEND_CONTAINER" "$CONTAINER_NAME"
 set_secret "TF_BACKEND_KEY" "terraform.tfstate"
+set_secret "TF_BACKEND_SUBSCRIPTION_ID" "$SUBSCRIPTION_ID"
+set_secret "TF_BACKEND_TENANT_ID" "$TENANT_ID"
 set_secret "AZURE_SUBSCRIPTION_ID" "$SUBSCRIPTION_ID"
 set_secret "AZURE_TENANT_ID" "$TENANT_ID"
 set_secret "AZURE_CLIENT_ID" "$APP_ID"
@@ -441,6 +443,8 @@ terraform {
     storage_account_name = "$STORAGE_ACCOUNT"
     container_name       = "$CONTAINER_NAME"
     key                  = "terraform.tfstate"
+    subscription_id      = "$SUBSCRIPTION_ID"
+    tenant_id            = "$TENANT_ID"
     use_oidc             = true
   }
 }
