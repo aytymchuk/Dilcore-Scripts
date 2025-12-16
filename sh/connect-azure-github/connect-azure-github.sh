@@ -587,7 +587,14 @@ create_credential() {
     
     if [[ -n "$EXISTING" ]]; then
         # Check if the existing credential has the same subject
-        local EXISTING_SUBJECT=$(az ad app federated-credential show --id "$APP_ID" --federated-credential-id "$NAME" --query "subject" -o tsv 2>/dev/null)
+        local EXISTING_SUBJECT
+        EXISTING_SUBJECT=$(az ad app federated-credential show --id "$APP_ID" --federated-credential-id "$NAME" --query "subject" -o tsv 2>/dev/null)
+        local CMD_STATUS=$?
+
+        if [[ $CMD_STATUS -ne 0 ]]; then
+            print_error "Failed to retrieve existing credential subject for '$NAME'."
+            exit 1
+        fi
         
         if [[ "$EXISTING_SUBJECT" == "$SUBJECT" ]]; then
             print_warning "Exists (matches): $NAME"

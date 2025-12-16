@@ -203,7 +203,11 @@ if [[ -z "$APP_ID" ]]; then
     exit 1
 fi
 
-print_success "Selected App ID: $APP_ID"
+if [[ -n "$APP_NAME" ]]; then
+    print_success "Selected App: $APP_NAME (ID: $APP_ID)"
+else
+    print_success "Selected App ID: $APP_ID"
+fi
 
 #-------------------------------------------------------------------------------
 # Grant Subscription Access
@@ -381,6 +385,9 @@ set_secret "AZURE_APP_CONFIG_NAME" "$APP_CONFIG_NAME"
 set_secret "AZURE_APP_CONFIG_ENDPOINT" "$APP_CONFIG_ENDPOINT"
 # Redundant but useful context
 set_secret "AZURE_APP_CONFIG_RESOURCE_GROUP" "$RESOURCE_GROUP"
+set_secret "AZURE_TENANT_ID" "$TENANT_ID"
+set_secret "AZURE_SUBSCRIPTION_ID" "$SUBSCRIPTION_ID"
+set_secret "AZURE_CLIENT_ID" "$APP_ID"
 
 print_success "Secrets configured in '$ENVIRONMENT' environment."
 

@@ -396,10 +396,11 @@ else
     print_success "Role 'Storage Blob Data Contributor' assigned."
 fi
 
-# Grant 'Owner' on the Subscription (TF Backend Subscription)
-# This is required if the backend subscription is different from the deployment subscription, 
-# or if the SP needs full control over the backend subscription as well.
-print_step "Granting 'Owner' on Subscription $SUBSCRIPTION_ID..."
+# Grant 'Owner' on the Subscription (Optional)
+# Security Note: Granting 'Owner' allows full control over the subscription, including role assignments.
+# This follows the principle of least privilege by default skipping this step unless explicitly confirmed.
+print_header "Subscription Role Assignment"
+
 EXISTING_OWNER=$(az role assignment list \
     --assignee "$APP_ID" \
     --role "Owner" \
@@ -407,14 +408,23 @@ EXISTING_OWNER=$(az role assignment list \
     --query "[].id" -o tsv)
 
 if [[ -n "$EXISTING_OWNER" ]]; then
-    print_warning "Role assignment 'Owner' already exists on subscription."
+    print_warning "Role assignment 'Owner' already exists on subscription $SUBSCRIPTION_ID."
 else
-    az role assignment create \
-        --assignee "$APP_ID" \
-        --role "Owner" \
-        --scope "/subscriptions/$SUBSCRIPTION_ID" \
-        --output none
-    print_success "Role 'Owner' assigned on subscription."
+    echo "Do you want to grant 'Owner' role to the Service Principal on Subscription $SUBSCRIPTION_ID?"
+    echo "WARNING: 'Owner' role allows full control over all resources in the subscription."
+    echo "Default is NO (recommended for least privilege)."
+    
+    if confirm "Grant Owner role?"; then
+        print_step "Granting 'Owner' on Subscription $SUBSCRIPTION_ID..."
+        az role assignment create \
+            --assignee "$APP_ID" \
+            --role "Owner" \
+            --scope "/subscriptions/$SUBSCRIPTION_ID" \
+            --output none
+        print_success "Role 'Owner' assigned on subscription."
+    else
+        print_step "Skipping 'Owner' role assignment."
+    fi
 fi
 
 # 5. GitHub Secrets
