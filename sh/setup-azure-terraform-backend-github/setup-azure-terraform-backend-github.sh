@@ -375,8 +375,10 @@ else
 fi
 
 # 4. Grant Access
-print_step "Granting 'Storage Blob Data Contributor' to App ID..."
-# Check existing assignment to avoid error
+print_step "Granting Access to App ID..."
+
+# Grant 'Storage Blob Data Contributor' on the Storage Account
+print_step "Granting 'Storage Blob Data Contributor' on Storage Account..."
 EXISTING_ASSIGNMENT=$(az role assignment list \
     --assignee "$APP_ID" \
     --role "Storage Blob Data Contributor" \
@@ -384,14 +386,45 @@ EXISTING_ASSIGNMENT=$(az role assignment list \
     --query "[].id" -o tsv)
 
 if [[ -n "$EXISTING_ASSIGNMENT" ]]; then
-    print_warning "Role assignment already exists."
+    print_warning "Role assignment 'Storage Blob Data Contributor' already exists."
 else
     az role assignment create \
         --assignee "$APP_ID" \
         --role "Storage Blob Data Contributor" \
         --scope "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.Storage/storageAccounts/$STORAGE_ACCOUNT" \
         --output none
-    print_success "Role assigned."
+    print_success "Role 'Storage Blob Data Contributor' assigned."
+fi
+
+# Grant 'Owner' on the Subscription (Optional)
+# Security Note: Granting 'Owner' allows full control over the subscription, including role assignments.
+# This follows the principle of least privilege by default skipping this step unless explicitly confirmed.
+print_header "Subscription Role Assignment"
+
+EXISTING_OWNER=$(az role assignment list \
+    --assignee "$APP_ID" \
+    --role "Owner" \
+    --scope "/subscriptions/$SUBSCRIPTION_ID" \
+    --query "[].id" -o tsv)
+
+if [[ -n "$EXISTING_OWNER" ]]; then
+    print_warning "Role assignment 'Owner' already exists on subscription $SUBSCRIPTION_ID."
+else
+    echo "Do you want to grant 'Owner' role to the Service Principal on Subscription $SUBSCRIPTION_ID?"
+    echo "WARNING: 'Owner' role allows full control over all resources in the subscription."
+    echo "Default is NO (recommended for least privilege)."
+    
+    if confirm "Grant Owner role?"; then
+        print_step "Granting 'Owner' on Subscription $SUBSCRIPTION_ID..."
+        az role assignment create \
+            --assignee "$APP_ID" \
+            --role "Owner" \
+            --scope "/subscriptions/$SUBSCRIPTION_ID" \
+            --output none
+        print_success "Role 'Owner' assigned on subscription."
+    else
+        print_step "Skipping 'Owner' role assignment."
+    fi
 fi
 
 # 5. GitHub Secrets

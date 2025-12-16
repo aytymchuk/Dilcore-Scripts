@@ -10,11 +10,13 @@ This script automates the creation of an Azure Storage Account for Terraform sta
     - **Resource Group**: Select an existing one or create a new one.
     - **Storage Account**: Select an existing one (in the chosen RG) or create a new one.
     - **App Registration**: Select the App Registration (Service Principal) to grant access to.
+    - **Subscription Access**: Optionally grant 'Owner' role to the Service Principal on the subscription (default: No).
 - **Security Best Practices**:
     - Creates Storage Account with `Standard_LRS`, `HTTPS Only`, `TLS 1.2+`.
     - Disables public blob access.
     - Enables Blob Versioning and Soft Delete (7 days retention).
     - Uses Azure RBAC (`Storage Blob Data Contributor`) instead of Access Keys.
+    - Follows Principle of Least Privilege by making subscription-level 'Owner' access optional.
 - **GitHub Secrets Configuration**:
     - Automatically creates/updates the GitHub Environment.
     - Sets the following secrets:

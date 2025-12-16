@@ -1,5 +1,7 @@
 # Dilcore Scripts
 
+![CodeRabbit Reviews](https://img.shields.io/coderabbit/prs/github/aytymchuk/Dilcore-Scripts?utm_source=oss&utm_medium=github&utm_campaign=aytymchuk%2FDilcore-Scripts&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
+
 A collection of utility scripts for automating DevOps and Infrastructure tasks.
 
 ## Scripts
@@ -18,6 +20,13 @@ A script to bootstrap the Azure infrastructure (Storage Account) required for Te
 *   **Location**: [`sh/setup-azure-terraform-backend-github/setup-azure-terraform-backend-github.sh`](sh/setup-azure-terraform-backend-github/setup-azure-terraform-backend-github.sh)
 *   **Documentation**: [Read detailed instructions](sh/setup-azure-terraform-backend-github/README.md)
 
+### 3. Azure App Configuration & GitHub Secrets Setup
+
+A script to manage Azure App Configuration access for GitHub Actions and Terraform. It grants necessary roles (Subscription Owner, Data Owner) to Service Principals and configures secrets for App Configuration consumption.
+
+*   **Location**: [`sh/setup-azure-app-config-github/setup-azure-app-config-github.sh`](sh/setup-azure-app-config-github/setup-azure-app-config-github.sh)
+*   **Documentation**: [Read detailed instructions](sh/setup-azure-app-config-github/README.md)
+
 ---
 
 ## Quick Start
@@ -32,4 +41,10 @@ A script to bootstrap the Azure infrastructure (Storage Account) required for Te
     This creates the Storage Account and configures backend-specific secrets.
     ```bash
     ./sh/setup-azure-terraform-backend-github/setup-azure-terraform-backend-github.sh
+    ```
+
+3.  **Step 3: Setup App Configuration**
+    This configures App Configuration resources and grants access.
+    ```bash
+    ./sh/setup-azure-app-config-github/setup-azure-app-config-github.sh
     ```
