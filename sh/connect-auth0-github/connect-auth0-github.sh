@@ -68,12 +68,13 @@ prompt() {
         return
     fi
     
+    local INPUT
     if [[ -n "$DEFAULT_VALUE" ]]; then
         read -p "$PROMPT_TEXT [$DEFAULT_VALUE]: " INPUT
-        eval "$VAR_NAME=\"${INPUT:-$DEFAULT_VALUE}\""
+        printf -v "$VAR_NAME" "%s" "${INPUT:-$DEFAULT_VALUE}"
     else
         read -p "$PROMPT_TEXT: " INPUT
-        eval "$VAR_NAME=\"$INPUT\""
+        printf -v "$VAR_NAME" "%s" "$INPUT"
     fi
 }
 
@@ -633,10 +634,8 @@ setup_github_env() {
     # Create Environment (idempotent-ish)
     gh api "repos/$GITHUB_ORG/$GITHUB_REPO/environments/$env" -X PUT &>/dev/null || true
     
-    # Set Secrets
+    # 1. Set Secrets (Sensitive Data)
     local secrets_to_set=(
-        "AUTH0_DOMAIN|$AUTH0_DOMAIN"
-        "AUTH0_CLIENT_ID|$cid"
         "AUTH0_CLIENT_SECRET|$csec"
     )
 
@@ -652,8 +651,27 @@ setup_github_env() {
             exit 1
         fi
     done
+
+    # 2. Set Variables (Non-Sensitive Data)
+    local vars_to_set=(
+        "AUTH0_DOMAIN|$AUTH0_DOMAIN"
+        "AUTH0_CLIENT_ID|$cid"
+    )
+
+    for var_pair in "${vars_to_set[@]}"; do
+        local name="${var_pair%%|*}"
+        local value="${var_pair#*|}"
+        local output
+
+        if ! output=$(gh variable set "$name" -e "$env" -b "$value" -R "$GITHUB_ORG/$GITHUB_REPO" 2>&1); then
+            print_error "Failed to set variable '$name' for environment '$env' in '$GITHUB_ORG/$GITHUB_REPO'."
+            echo "Exit Code: $?"
+            echo "Output: $output"
+            exit 1
+        fi
+    done
     
-    print_success "Secrets set for $env"
+    print_success "Configuration (Secrets & Variables) set for $env"
 }
 
 IFS=',' read -ra ENV_ARRAY <<< "$ENVIRONMENTS"
@@ -705,4 +723,7 @@ echo "Ensure your Terraform provider is configured to use:"
 echo "  domain        = var.auth0_domain"
 echo "  client_id     = var.auth0_client_id"
 echo "  client_secret = var.auth0_client_secret"
+echo ""
+echo "Note: AUTH0_DOMAIN and AUTH0_CLIENT_ID are set as GitHub Variables."
+echo "      AUTH0_CLIENT_SECRET is set as a GitHub Secret."
 echo ""
