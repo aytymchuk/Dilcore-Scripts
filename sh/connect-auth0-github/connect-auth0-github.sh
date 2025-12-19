@@ -634,9 +634,24 @@ setup_github_env() {
     gh api "repos/$GITHUB_ORG/$GITHUB_REPO/environments/$env" -X PUT &>/dev/null || true
     
     # Set Secrets
-    gh secret set AUTH0_DOMAIN -e "$env" -b "$AUTH0_DOMAIN" -R "$GITHUB_ORG/$GITHUB_REPO"
-    gh secret set AUTH0_CLIENT_ID -e "$env" -b "$cid" -R "$GITHUB_ORG/$GITHUB_REPO"
-    gh secret set AUTH0_CLIENT_SECRET -e "$env" -b "$csec" -R "$GITHUB_ORG/$GITHUB_REPO"
+    local secrets_to_set=(
+        "AUTH0_DOMAIN|$AUTH0_DOMAIN"
+        "AUTH0_CLIENT_ID|$cid"
+        "AUTH0_CLIENT_SECRET|$csec"
+    )
+
+    for secret_pair in "${secrets_to_set[@]}"; do
+        local name="${secret_pair%%|*}"
+        local value="${secret_pair#*|}"
+        local output
+
+        if ! output=$(gh secret set "$name" -e "$env" -b "$value" -R "$GITHUB_ORG/$GITHUB_REPO" 2>&1); then
+            print_error "Failed to set secret '$name' for environment '$env' in '$GITHUB_ORG/$GITHUB_REPO'."
+            echo "Exit Code: $?"
+            echo "Output: $output"
+            exit 1
+        fi
+    done
     
     print_success "Secrets set for $env"
 }
