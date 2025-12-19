@@ -243,12 +243,61 @@ EOF
 # Parse Arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
-        -o|--github-org) GITHUB_ORG="$2"; shift 2 ;;
-        -r|--github-repo) GITHUB_REPO="$2"; shift 2 ;;
-        -e|--environments) ENVIRONMENTS="$2"; shift 2 ;;
-        -s|--strategy) STRATEGY="$2"; shift 2 ;;
-        -d|--auth0-domain) AUTH0_DOMAIN="$2"; shift 2 ;;
-        -i|--app-id) SELECTED_APP_ID="$2"; CREATE_NEW_APP=false; shift 2 ;;
+        -o|--github-org)
+            if [[ -z "$2" || "$2" == -* ]]; then
+                print_error "Option $1 requires an argument."
+                show_help
+                exit 1
+            fi
+            GITHUB_ORG="$2"
+            shift 2
+            ;;
+        -r|--github-repo)
+            if [[ -z "$2" || "$2" == -* ]]; then
+                print_error "Option $1 requires an argument."
+                show_help
+                exit 1
+            fi
+            GITHUB_REPO="$2"
+            shift 2
+            ;;
+        -e|--environments)
+            if [[ -z "$2" || "$2" == -* ]]; then
+                print_error "Option $1 requires an argument."
+                show_help
+                exit 1
+            fi
+            ENVIRONMENTS="$2"
+            shift 2
+            ;;
+        -s|--strategy)
+            if [[ -z "$2" || "$2" == -* ]]; then
+                print_error "Option $1 requires an argument."
+                show_help
+                exit 1
+            fi
+            STRATEGY="$2"
+            shift 2
+            ;;
+        -d|--auth0-domain)
+            if [[ -z "$2" || "$2" == -* ]]; then
+                print_error "Option $1 requires an argument."
+                show_help
+                exit 1
+            fi
+            AUTH0_DOMAIN="$2"
+            shift 2
+            ;;
+        -i|--app-id)
+            if [[ -z "$2" || "$2" == -* ]]; then
+                print_error "Option $1 requires an argument."
+                show_help
+                exit 1
+            fi
+            SELECTED_APP_ID="$2"
+            CREATE_NEW_APP=false
+            shift 2
+            ;;
         -y|--auto-confirm) AUTO_CONFIRM=true; shift ;;
         -h|--help) show_help; exit 0 ;;
         *) print_error "Unknown option: $1"; show_help; exit 1 ;;
@@ -369,7 +418,7 @@ fi
 if [[ -z "$AUTH0_DOMAIN" ]]; then
     # Try to get from auth0 cli config if possible, or just ask
     # We can try to get it from `auth0 tenants list` if logged in, but let's just ask or check current context
-    DETECTED_DOMAIN=$(auth0 tenants list --json 2>/dev/null | jq -r '.[0].domain' || echo "")
+    DETECTED_DOMAIN=$(auth0 tenants list --json 2>/dev/null | jq -r '.[0].domain // empty' || echo "")
     
     if [[ -n "$DETECTED_DOMAIN" ]]; then
         read -p "Auth0 Domain [$DETECTED_DOMAIN]: " input
@@ -570,7 +619,8 @@ get_or_create_app() {
         print_warning "Failed to run token test. You might need to authorize the app manually first or check client secret."
     fi
 
-    echo "$client_id:$client_secret"
+    echo "$client_id"
+    echo "$client_secret"
 }
 
 setup_github_env() {
@@ -596,9 +646,9 @@ IFS=',' read -ra ENV_ARRAY <<< "$ENVIRONMENTS"
 if [[ -n "$SELECTED_APP_ID" ]]; then
     # Mode: Existing App (Single App Logic effectively)
     
-    CREDS=$(get_or_create_app "$SELECTED_APP_ID" "true")
-    CLIENT_ID=${CREDS%%:*}
-    CLIENT_SECRET=${CREDS#*:}
+    readarray -t CREDS_ARRAY < <(get_or_create_app "$SELECTED_APP_ID" "true")
+    CLIENT_ID="${CREDS_ARRAY[0]}"
+    CLIENT_SECRET="${CREDS_ARRAY[1]}"
     
     for env in "${ENV_ARRAY[@]}"; do
         # Trim whitespace
@@ -610,9 +660,9 @@ elif [[ "$STRATEGY" == "single" ]]; then
     # Single App Strategy
     APP_NAME="Terraform-GitHub-$GITHUB_REPO-ALL"
     
-    CREDS=$(get_or_create_app "$APP_NAME" "false")
-    CLIENT_ID=${CREDS%%:*}
-    CLIENT_SECRET=${CREDS#*:}
+    readarray -t CREDS_ARRAY < <(get_or_create_app "$APP_NAME" "false")
+    CLIENT_ID="${CREDS_ARRAY[0]}"
+    CLIENT_SECRET="${CREDS_ARRAY[1]}"
     
     for env in "${ENV_ARRAY[@]}"; do
         # Trim whitespace
@@ -626,9 +676,9 @@ else
         env=$(echo "$env" | xargs)
         APP_NAME="Terraform-GitHub-$GITHUB_REPO-${env^^}"
         
-        CREDS=$(get_or_create_app "$APP_NAME" "false")
-        CLIENT_ID=${CREDS%%:*}
-        CLIENT_SECRET=${CREDS#*:}
+        readarray -t CREDS_ARRAY < <(get_or_create_app "$APP_NAME" "false")
+        CLIENT_ID="${CREDS_ARRAY[0]}"
+        CLIENT_SECRET="${CREDS_ARRAY[1]}"
         
         setup_github_env "$env" "$CLIENT_ID" "$CLIENT_SECRET"
     done
