@@ -46,6 +46,24 @@ AZURE_SUBSCRIPTION_ID=""
 AZURE_APP_CONFIG_NAME=""
 AZURE_KEY_VAULT_NAME=""
 
+# Common Scopes for Terraform
+# These scopes allow Terraform to manage Clients, APIs, Connections, Users, Roles, etc.
+TERRAFORM_SCOPES=(\
+"read:clients" "create:clients" "update:clients" "delete:clients" \
+"read:client_keys" "create:client_keys" "update:client_keys" "delete:client_keys" \
+"read:connections" "create:connections" "update:connections" "delete:connections" \
+"read:resource_servers" "create:resource_servers" "update:resource_servers" "delete:resource_servers" \
+"read:users" "create:users" "update:users" "delete:users" \
+"read:client_grants" "create:client_grants" "update:client_grants" "delete:client_grants" \
+"read:roles" "create:roles" "update:roles" "delete:roles" \
+"read:rules" "create:rules" "update:rules" "delete:rules" \
+"read:hooks" "create:hooks" "update:hooks" "delete:hooks" \
+"read:actions" "create:actions" "update:actions" "delete:actions" \
+"read:tenant_settings" "update:tenant_settings" \
+"read:logs" \
+"read:organizations" "create:organizations" "update:organizations" "delete:organizations" \
+)
+
 # Helper Functions
 print_header() {
     echo ""
@@ -447,9 +465,12 @@ check_deps() {
 check_auth0_login() {
     print_step "Auth0 Authentication"
     
+    # Construct scopes string for the CLI login to ensure it can perform API calls
+    local scopes_str=$(IFS=,; echo "${TERRAFORM_SCOPES[*]}")
+
     # Always prompt for login or tenant selection to ensure correct context
     echo "Please authenticate or select your Auth0 tenant:"
-    if ! auth0 login; then
+    if ! auth0 login --scopes "$scopes_str"; then
          print_error "Auth0 login failed."
          exit 1
     fi
@@ -828,21 +849,7 @@ if [[ "$CONFIG_DESTINATION" == "github" ]]; then
 fi
 
 # Common Scopes for Terraform
-# These scopes allow Terraform to manage Clients, APIs, Connections, Users, Roles, etc.
-TERRAFORM_SCOPES=(\
-"read:clients" "create:clients" "update:clients" "delete:clients" \
-"read:client_keys" "create:client_keys" "update:client_keys" "delete:client_keys" \
-"read:connections" "create:connections" "update:connections" "delete:connections" \
-"read:resource_servers" "create:resource_servers" "update:resource_servers" "delete:resource_servers" \
-"read:users" "create:users" "update:users" "delete:users" \
-"read:roles" "create:roles" "update:roles" "delete:roles" \
-"read:rules" "create:rules" "update:rules" "delete:rules" \
-"read:hooks" "create:hooks" "update:hooks" "delete:hooks" \
-"read:actions" "create:actions" "update:actions" "delete:actions" \
-"read:tenant_settings" "update:tenant_settings" \
-"read:logs" \
-"read:organizations" "create:organizations" "update:organizations" "delete:organizations" \
-)
+# (Defined at the top of the script)
 
 ensure_app_scopes() {
     local client_id="$1"
