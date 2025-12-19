@@ -27,6 +27,13 @@ A script to manage Azure App Configuration access for GitHub Actions and Terrafo
 *   **Location**: [`sh/setup-azure-app-config-github/setup-azure-app-config-github.sh`](sh/setup-azure-app-config-github/setup-azure-app-config-github.sh)
 *   **Documentation**: [Read detailed instructions](sh/setup-azure-app-config-github/README.md)
 
+### 4. Auth0-GitHub Connection Setup
+
+A script to automate the connection between Auth0 and GitHub Actions for Terraform. It creates or reuses Auth0 M2M applications, grants necessary Management API scopes, and populates GitHub secrets.
+
+*   **Location**: [`sh/connect-auth0-github/connect-auth0-github.sh`](sh/connect-auth0-github/connect-auth0-github.sh)
+*   **Documentation**: [Read detailed instructions](sh/connect-auth0-github/README.md)
+
 ---
 
 ## Quick Start
@@ -47,4 +54,10 @@ A script to manage Azure App Configuration access for GitHub Actions and Terrafo
     This configures App Configuration resources and grants access.
     ```bash
     ./sh/setup-azure-app-config-github/setup-azure-app-config-github.sh
+    ```
+
+4.  **Step 4: Connect Auth0 to GitHub**
+    This creates Auth0 M2M applications and configures GitHub secrets for Terraform.
+    ```bash
+    ./sh/connect-auth0-github/connect-auth0-github.sh
     ```
