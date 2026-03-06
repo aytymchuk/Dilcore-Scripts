@@ -13,6 +13,7 @@ This script automates the process of connecting Auth0 to GitHub repository envir
   - Automatically fetches and lists GitHub Organizations, Repositories, and Environments using `gh` CLI.
   - Supports multi-selection for environments (including "All" option).
 - **GitHub Integration**: Automatically creates GitHub Environments and sets secrets (`AUTH0_DOMAIN`, `AUTH0_CLIENT_ID`, `AUTH0_CLIENT_SECRET`).
+- **Azure Integration**: Optionally save credentials to Azure App Configuration or Azure Key Vault (with App Config reference) instead of GitHub Secrets.
 - **Permissions**: Automatically checks and grants necessary Management API scopes for Terraform operations.
 - **Verification**: Automatically tests generated credentials using `auth0 test token` to ensure validity.
 
@@ -34,6 +35,11 @@ Ensure you have the following CLI tools installed and authenticated:
 3.  **jq**: JSON processor
     ```bash
     brew install jq
+    ```
+4.  **Azure CLI (`az`)** (Optional, for Azure integration):
+    ```bash
+    brew install azure-cli
+    az login
     ```
 
 ## Usage
